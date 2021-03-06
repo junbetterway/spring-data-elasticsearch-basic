@@ -14,7 +14,7 @@ The best way to be introduced to Elasticsearch concepts is by drawing an analogy
 | Row                 | Document      |  
 | Column              | Field         |    
 
-Now having the above comparisons, this is how we will define our Index class - Account:
+Now having the above comparisons, this is how we will define our Index class - **Account**:
 
 ```
 @Document(indexName = AccountConstant.INDEX_NAME)
@@ -27,11 +27,11 @@ public class Account {
 	@Id
 	private String id;
 	
-  @Field(type = FieldType.Text, name = "name")
+        @Field(type = FieldType.Text, name = "name")
 	private String name;
 	
 	@Field(type = FieldType.Double, name = "balance")
-  private Double balance;
+  	private Double balance;
 
 	@Field(type = FieldType.Text, name = "address")
 	private String address;
@@ -53,7 +53,7 @@ We have two ways of accessing Elasticsearch with Spring Data:
 * **Repositories**: We define methods in an interface, and Elasticsearch queries are generated from method names at runtime.
 * **ElasticsearchRestTemplate**: We create queries with method chaining and native queries to have more control over creating Elasticsearch queries in relatively complex scenarios. The repository approach may not be suitable when we need granular control over how we create our queries or when the team already has expertise with Elasticsearch syntax.
 
-For this tutorial, we will combine both and expose APIs to each for testing purposes. In addition, we created **AccountCustomRepository** and use it as the interface using the **ElasticsearchRestTemplate** then extending it by **AccountRepository** to provide abstraction on its invoking services.
+For this tutorial, we will combine both and expose APIs to each for testing purposes. In addition, we created **AccountCustomRepository** and use it as the interface using the **ElasticsearchRestTemplate** then extending it by our normal Spring Data **AccountRepository** to provide abstraction on its invoking services.
 
 ## Run the needed dependencies: Elasticsearch instance
 
@@ -100,10 +100,12 @@ The resulting output should be somehow like this:
 2. Right-click on the project or the main application class then select "Run As" > "Spring Boot App"
 
 ## Testing time
-We are kind of using CQRS here on lightweight approach by simply separating two packages (two models) for our Account class. In any case, let's try the account creation APIs where we exposed two different endpoints for saving:
+We are kind of using CQRS here on lightweight approach by simply separating two packages (two models) for our Account class. 
 
-1.  http://localhost:8080/api/account/command
-2.  http://localhost:8080/api/account/command/restTemplate
+1. Create API (save) - see **AccountCommandController**
+
+* http://localhost:8080/api/account/command
+* http://localhost:8080/api/account/command/restTemplate
 
 The request body format for both contracts are just the same - sample:
 
@@ -116,7 +118,38 @@ The request body format for both contracts are just the same - sample:
 }
 ```
 
-The only difference is on the **AccountCommandServiceImpl** - one calling the default **repository.save(account)** while the other is our custom **repository.saveViaRestTemp(account)**. 
+The only difference is on the **AccountCommandServiceImpl** - one calling the default **repository.save(account)** while the other is our custom **repository.saveViaRestTemp(account)**. Create more for testing our search.
+
+2. Search API (read/view) - see **AccountQueryController**
+
+There are several query API endpoints here but let's focus on the multi-field search API endpoint:
+
+```
+ http://localhost:8080/api/account/query/filter/{searchKey}
+```
+
+This is using below custom repository I created. As can be seen below, it is very easy to perform matching on different fields. Not to mention, we can use several elasticsearch properties such as fuzziness which allows some typo during the search but still possible to match it with a search by specifying a fuzziness parameter, which allows inexact matching.
+
+```
+@Override
+public SearchHits<Account> multiFieldSearch(final String query) {
+
+	QueryBuilder queryBuilder = QueryBuilders
+			.multiMatchQuery(query, "name", "address", "type")
+			.fuzziness(Fuzziness.AUTO);
+
+	Query searchQuery = new NativeSearchQueryBuilder()
+			.withFilter(queryBuilder)
+			.build();
+
+	return operations.search(searchQuery, 
+			Account.class, 
+			IndexCoordinates.of(AccountConstant.INDEX_NAME));
+
+}
+```
+
+Go ahead try it!
 
 Lastly, I find this __[link](https://reflectoring.io/spring-boot-elasticsearch/)__ really useful and most of my understanding (and above explanation) with regards to Spring Data Elasticsearch is best explained by the article. Kudos to the author!
 
