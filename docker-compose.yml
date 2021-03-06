@@ -1,0 +1,9 @@
+version: "3.4"
+services:
+  elasticsearch:
+    image: elasticsearch:7.9.3
+    container_name: "elasticsearch-container"
+    ports:
+      - "9200:9200"
+    environment:
+      discovery.type: single-node
