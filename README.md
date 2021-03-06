@@ -151,7 +151,7 @@ public SearchHits<Account> multiFieldSearch(final String query) {
 
 Go ahead try it!
 
-Lastly, I find this __[link](https://reflectoring.io/spring-boot-elasticsearch/)__ really useful and most of my understanding (and above explanation) with regards to Spring Data Elasticsearch is best explained by the article. Kudos to the author!
+Lastly, I find these two articles: __[this](https://reflectoring.io/spring-boot-elasticsearch/)__ and __[this](https://medium.com/groww-engineering/simple-search-service-using-springboot-and-elasticsearch-2-e8e856c7bc8f)__ really useful and most of my understanding (and above explanation) with regards to Spring Data Elasticsearch are best explained by these links. Kudos to the authors!
 
 ## Powered By
 Contact me at [junbetterway](mailto:jkpminon12@yahoo.com)
